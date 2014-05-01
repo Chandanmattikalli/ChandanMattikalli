@@ -1,0 +1,44 @@
+Q.1. 
+For the code 
+
+int x; 
+for(x=0; x<10; x++) 
+{}; 
+value of x at the end is=_______ ?
+
+A. 10
+B. 9
+C. 0
+D. 1
+
+Q.2.
+Which is a valid function call for any arbitory function ?
+
+A. funct;
+B. funct x, y;
+C. funct();
+D. int funct();
+
+Q.3.
+The memory address of integer variable a is given by_____
+
+A. *a;
+B. a;
+C. &a;
+D. address(a);
+
+Q.4.
+The following is a properly defined struct _______
+
+A. struct {int a;}
+B. struct a_struct {int a;}
+C. struct a_struct int a;
+D. struct a_struct {int a;};
+
+Q.5. 
+
+The correct way to access variable in structure b is given by ______
+A. b->var;
+B. b.var;
+C. b-var;
+D. b>var;

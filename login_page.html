@@ -1,0 +1,244 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script>
+            function call()
+            {
+                alert("<?php hello(); ?>");
+            }
+        </script>
+        
+        <style>
+           div.bgimg1
+           {
+                position: absolute;
+            left:-60px;
+            top:140px;
+            
+           }
+           div.bgimg2
+           {
+                position: absolute;
+            left:540px;
+            top:140px;
+            
+            
+           }
+            #button
+        {
+          text-align:center ;
+          border-color:wheat;
+          border-bottom-width: 5px;
+          height: 100px;
+          width:400px;
+          border-radius:25px;
+          -moz-border-radius:25px;
+          background:red;
+          box-shadow: 10px 10px 5px white;
+        }
+        button:focus
+        {
+               -moz-animation:myfirst .10s;
+                animation: myfirst .10s;
+               -webkit-animation: myfirst .10s;
+        }
+        h1.two{
+            font-size: 50px;
+        }
+        h1
+        {
+            font-size: 20px;
+            color:white;
+        }
+        div.one
+        {
+            color: blue;
+            border:2px solid #a1a1a1;
+            padding:10px 90px; 
+            width:275px;
+            border-radius:25px;
+            -moz-border-radius:50px; /* Old Firefox */
+            box-shadow: 0px 0px 5px 5px;
+            background: linear-gradient(red,brown);
+            position: absolute;
+            left:450px;
+            top:450px;
+        }
+         div.two
+        {
+            color: blue;
+            border:2px solid #a1a1a1;
+            padding:10px 90px; 
+            width:275px;
+            border-radius:25px;
+            -moz-border-radius:50px; /* Old Firefox */
+            box-shadow: 0px 0px 5px 5px;
+            background: linear-gradient(red,brown);
+            position: absolute;
+            left:450px;
+            top:170px;
+            
+            
+        }
+        div.img1
+        {
+            position: absolute;
+            left:10px;
+            top:20px;
+            -moz-animation:leftgun 1s;
+               animation: leftgun 1s;
+               -webkit-animation:left 1s; 
+               
+               -moz-animation-iteration-count: infinite;
+               animation-iteration-count: infinite;
+               -webkit-animation-iteration-count: infinite;
+        }
+        div.img2
+        {
+            position: absolute;
+            left:1200px;
+            top:20px;
+            
+               -moz-animation:rightgun 1s;
+               animation: rightgun 1s;
+               -webkit-animation:right 1s; 
+               
+               -moz-animation-iteration-count: infinite;
+               animation-iteration-count: infinite;
+               -webkit-animation-iteration-count: infinite;
+        }
+        div.bull1
+        {
+            position: absolute;
+            left:140px;
+            top:40px;
+            -moz-animation:leftbull 1s;
+               animation: leftbull 1s;
+               -webkit-animation: leftbull 1s; 
+               
+               -moz-animation-iteration-count: infinite;
+               animation-iteration-count: infinite;
+               -webkit-animation-iteration-count: infinite;
+        }
+        
+         div.bull2
+        {
+            position: absolute;
+            left:1200px;
+            top:40px;
+            -moz-animation:rightbull 1s;
+             animation: rightbull 1s;
+            -webkit-animation: rightbull 1s; 
+            -moz-animation-iteration-count: infinite;
+             animation-iteration-count: infinite;
+            -webkit-animation-iteration-count: infinite;
+        }
+ 
+@keyframes leftbull /* Firefox */
+{
+  20%   {left:350px;}
+  100%   {left:350px;}
+}   
+@keyframes rightbull /* Firefox */
+{
+  20%   {left:985px;}
+  100%   {left:985px;}
+}   
+@keyframes rightgun /* Firefox */
+{
+  20%   {left:1150px;}
+100%   {left:1150px;}
+}
+@keyframes leftgun /* Firefox */
+{
+  20%   {left:60px;}
+  100%   {left:60px;}
+}
+        </style>
+    </head>
+    <body bgcolor="black" onload="gun1(); gun2()">
+        <div class="bgimg1"><img src="matrix.gif"></div>
+        <div class="bgimg2"><img src="matrix.gif"></div>
+        <div class="img1" id="left_img"><img src="sda1.jpg" height="120"></div>
+        <div class="bull1" id="left_bull"><img src="bullet.jpg" width="15" height="10"></div>
+        <div class="img2" id="right_gun"><img src="sdf.jpg" height="120"></div>
+        <div class="bull2" id="right_bull"><img src="bullet.jpg" width="15" height="10"></div>
+        <table align="center">
+            <tr>
+                
+                <td><img src="bb.jpg" height="140" width="5"></td>
+                <td><h1 class="two">&nbsp;&nbsp;S</h1></td>
+                <td><h1 class="two">H</h1></td>
+                <td><h1 class="two">O</h1></td>
+                <td><h1 class="two">O</h1></td>
+                <td><h1 class="two">T</h1></td>
+                <td><h1 class="two">O</h1></td>
+                <td><h1 class="two">U</h1></td>
+                <td><h1 class="two">T</h1></td>
+                <td><h1 class="two">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h1></td>
+                <td><h1 class="two">A</h1></td>
+                <td><h1 class="two">T</h1></td>
+                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="clogo.jpg" height="80"></td>
+                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="bb.jpg" height="140" width="5"></td>
+                
+            </tr>
+        </table>
+        
+        <form action="member_login.php" method="post">
+            
+        
+        <div class="two">
+        <table align="right" cellspacing="10">
+            <tr>
+                <td><h1>MEMBER LOGIN</h1></td>
+                
+            </tr>
+            
+            <tr>
+                <td>NAME : <input type="text" size="50" name="name"></td>
+            </tr>
+            <tr>
+                <td>PASSWORD : <input type="password" size="50" name="password"></td>
+            </tr>
+            
+            <tr>
+                <td><input type="submit" value="ENTER THE GAME"></td>
+            </tr>
+        </table>
+            </div>
+            </form>
+        
+        <form action="registration_page.php" method="get">
+            
+        
+        <div class="one">
+        <table align="right" cellspacing="10">
+            <tr>
+                <td><h1>NOT A MEMBER?? </h1><h1>REGISTER NOW FOR FREE..!!</h1></td>
+                
+            </tr>
+          
+            <tr>
+                <td>NAME : <input type="text" size="50" name="name"></td>
+            </tr>
+            <tr>
+                <td>PASSWORD : <input type="password" size="50" name="password"></td>
+            </tr>
+            <tr>
+                <td>CONFIRM PASSWORD : <input type="password" size="50" name="con_password"></td>
+            </tr>
+            <tr>
+                <td><input type="submit" value="submit"></td>
+            </tr>
+        </table>
+            </div>
+            </form>
+        
+    </body>
+</html>

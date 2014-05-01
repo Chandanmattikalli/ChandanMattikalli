@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- Edited by XMLSpy® -->
+<CATALOG>
+	<LEVEL1>
+		<QUESTION>__ punctuation is used to signal the beginning and end of code blocks.</QUESTION>
+		<ANS>{}</ANS>
+		<POS>-2</POS>
+	</LEVEL1>
+	<LEVEL1>
+		<QUESTION>__ is the correct operator to compare two variables.</QUESTION>
+		<ANS>==</ANS>
+		<POS>-2</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION>Length of the array (int 2bytes):int byte[] = { 12, 34, 9, 0, -62, 88 } is_______</QUESTION>
+		<ANS>6</ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION>! in an expression means ____</QUESTION>
+		<ANS>not</ANS>
+		<POS>-1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> complete the given code --> printf("error") _______ </QUESTION>
+		<ANS>';'</ANS>
+		<POS>0</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION>The poiter of integer variable a is given by _________</QUESTION>
+		<ANS>*a</ANS>
+		<POS>0</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION>___ bs_compare(char **s1,char **s2){return(strcmp(*s1,*S2));</QUESTION>
+		<ANS>int</ANS>
+		<POS>-2</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION>_____kb is Max memory allocated in a single call to malloc()</QUESTION>
+		<ANS>64</ANS>
+		<POS>-2</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> The Bitwise operator used for putting a bit in a number is ___________________</QUESTION>
+		<ANS>| </ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> Output of the given code : main(){printf ("%c","abcdefgh"[4]) ; } is__________</QUESTION>
+		<ANS>e </ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> Output of the code : main(){printf("%c","Shootout at C"[12]);}____________</QUESTION>
+		<ANS>C </ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> Output of the given code: main(){printf("%d",sizeof("3");}   ______________</QUESTION>
+		<ANS>  2  </ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> Output of the given code: main(){printf("%d",sizeof(3);}  ________________</QUESTION>
+		<ANS> 2 </ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION>{char ch='A'; printf("%d,%d",sizeof(ch),sizeof('A'));} ______________ </QUESTION>
+		<ANS>1,2 </ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> Find Output: main(){ int a=2; printf("%d",sizeof(a));}______________</QUESTION>
+		<ANS> 4 </ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> Find Output: main(){ printf("%d",sizeof(NULL));} ________________</QUESTION>
+		<ANS> 2 </ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> Find Output:  main() {printf("\n%%%%");} _______</QUESTION>
+		<ANS> S</ANS>
+		<POS>0</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION>Find Output: main(){ printf("%d",sizeof(""));}   _____________</QUESTION>
+		<ANS> 1 </ANS>
+		<POS>1</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION> Can we have array of bit fields? {YES/NO}  ________</QUESTION>
+		<ANS>NO</ANS>
+		<POS>0</POS>
+	</LEVEL1>
+        <LEVEL1>
+		<QUESTION>malloc() allocates memory from the heap not from stack?{YES/NO} _________</QUESTION>
+		<ANS>YES</ANS>
+		<POS> 2</POS>
+	</LEVEL1>
+
+        
+</CATALOG>

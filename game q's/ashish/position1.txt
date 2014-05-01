@@ -1,0 +1,53 @@
+Q.1.
+__________ is a complete function.
+
+A. int funct();
+B. int funct(int x) {return x=x+1;}
+C. void funct(int) {printf( "Hello" ); 
+D. void funct(x) {printf( "Hello" ); }
+
+Q.2.
+______ is required to avoid falling through from one case to the next?
+
+A. end;
+B. break;
+C. Stop;
+D. A semicolon.
+
+Q.3.
+
+Fill in the blank:
+int getSum(int a,int b)
+{
+int sum=a+b;
+____________;
+}
+
+i) return a;
+ii) return;
+iii) return sum;
+iv) return getSum;
+
+Q.4.
+
+_______ is the boolean operator for logical-and?
+A. &
+B. &&
+C. |
+D. |&
+
+Q.4.
+_______ is the proper keyword or function to allocate memory in C?
+
+A. new
+B. malloc
+C. create
+D. value
+
+Q.5.
+_______ gives the memory address of integer variable a?
+
+A. *a;
+B. a;
+C. &a;
+D. address(a);

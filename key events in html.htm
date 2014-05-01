@@ -1,0 +1,2022 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>JavaScript Madness: Keyboard Events</title>
+<style type="text/css">
+.key {
+    border: 1px solid black;
+    padding: 0px 2px;
+}
+</style></head>
+
+<body>
+<center>
+<a href="http://unixpapa.com/js/">Javascript Madness Intro</a>
+<p>
+</p><h1>JavaScript Madness: Keyboard Events</h1>
+<strong><font size="+1"><a href="http://unixpapa.com/">Jan Wolter</a></font></strong><br>
+</center> 
+<h3>1. Introduction</h3>
+This document summarizes the results of some browser tests done while
+attempting to implement key stroke handling code in JavaScript.
+It documents inconsistancies in the way different browsers implement
+keyboard events.
+<p>
+The tests were originally done with the intention of
+learning just enough to write the code I needed to write.
+Coverage has expanded considerably since then, but
+the results here still are not comprehensive or authoritative
+and do not cover all aspects of keyboard event
+handling.
+</p><p>
+This data is based on tests of many, many browsers over many, many years,
+but is not comprehensive.  I update it periodically as new browsers cross
+my desktop.  The browser versions most recently tested are:
+</p><blockquote>
+<table border="1">
+<tbody><tr><td></td>
+<td align="center"><strong>Windows</strong></td>
+<td align="center"><strong>Macintosh</strong></td>
+<td align="center"><strong>Linux</strong></td>
+</tr>
+
+<tr>
+<td>Internet Explorer</td>
+<td align="center">9.0.8112.16421</td>
+<td align="center">5.2</td>
+<td align="center">-</td>
+</tr>
+
+<tr>
+<td>Firefox</td>
+<td align="center">13.0.1<br>(Gecko 13.0)</td>
+<td align="center">5.0.1<br>(Gecko 5.0.1)</td>
+<td align="center">4.0<br>(Gecko 2.0)</td>
+</tr>
+
+<tr>
+<td>Safari</td>
+<td align="center">5.1.7<br>(WebKit 534.57.2)</td>
+<td align="center">5.0.2<br>(WebKit 533.18.1)</td>
+<td align="center">-</td>
+</tr>
+
+<tr>
+<td>Chrome</td>
+<td align="center">20.0.1132.57<br>(WebKit 536.11)</td>
+<td align="center">-</td>
+<td align="center">4.0.249.43 Beta<br>(WebKit 532.5)</td>
+</tr>
+
+<tr>
+<td>Opera</td>
+<td align="center">11.52</td>
+<td align="center">9.10</td>
+<td align="center">10.10</td>
+</tr>
+
+<tr>
+<td>Konqueror</td>
+<td align="center">-</td>
+<td align="center">-</td>
+<td align="center">4.3.1</td>
+</tr>
+
+</tbody></table>
+</blockquote>
+The script used to collect the test results reported here is available at
+<a href="http://unixpapa.com/js/testkey.html">http://unixpapa.com/js/testkey.html</a>.
+I mostly report only what I can test myself, so this report is necessarily
+incomplete:
+<ul>
+<li>
+It primarily focuses on standard US keyboards.
+There are a
+<a href="http://en.wikipedia.org/wiki/Keyboard_layout">huge
+range of other keyboard layouts</a> in use in the world,
+which include not only different characters, but standard characters in
+different places.
+So, for example, many UK keyboards have a
+<span class="key">3 £</span> key and
+a
+<span class="key"># ~</span> key, neither of which exists on US keyboards.
+I don't know what keycodes keys like these send.
+<p>
+</p></li><li>
+It does not cover the behavior of keypad keys on the Macintosh,
+because none of my Macs have keypads.
+</li></ul>
+<p>
+This document will usually refer to "Gecko" instead of "Firefox" and to
+"WebKit" instead of "Safari" or "Chrome".
+That's because browser behavior usually depends on the rendering engine,
+and different browsers that use the same rendering engine work the same.
+See the <a href="http://unixpapa.com/js/gecko.html">Layout Engine</a> page for
+more information, including mappings of layout engine versions to browser
+versions.
+</p><p>
+Previous versions of this document included coverage of the iCab 3 browser,
+but iCab has switched to using the WebKit rendering engine,
+and so presumably behaves exactly like Safari.
+Since it is unlikely that many web developers will want to
+go out of their way to support iCab 3, that material has been removed from
+this document and archived in a <a href="http://unixpapa.com/js/icab.html">separate report on
+iCab 3</a>.
+
+</p><h3>2. Event Triggering</h3>
+
+In all recent browsers,
+pressing a key triggers a series of Javascript events which can be captured
+and handled.
+These events, however, were not defined by any standard until DOM3 which few
+browsers have yet implemented.
+<p>
+There is strong agreement across all browsers about which events should
+be sent and what order they should be sent in when a key is pressed:
+
+</p><table border="1">
+
+<tbody><tr><td><em>Browser</em></td>
+<td><em>Events sent when normal key is typed</em></td></tr>
+
+<tr><td>
+All Browsers
+</td>
+<td align="center">
+<strong>keydown</strong><br>
+<strong>keypress</strong><br>
+&nbsp;<br>
+<strong>keyup</strong>
+</td></tr>
+
+</tbody></table>
+<p>
+Windows versions of Opera have a bit of buggy behavior:  when you type the
+<span class="key">+</span>,
+<span class="key">-</span>,
+<span class="key">*</span>, or
+<span class="key">/</span> keys on the <em>keypad</em>, then
+two <strong>keypress</strong> events are triggered instead of one.
+This has been observed on Opera 11 and Opera 8.5.  I don't know how
+long this bug has been around.
+</p><p>
+The <strong>keydown</strong> event occurs when the key is pressed, followed
+immediately by the <strong>keypress</strong> event.
+Then the <strong>keyup</strong> event is generated when the key is released.
+</p><p>
+To understand the difference between <strong>keydown</strong> and
+<strong>keypress</strong>,
+it is useful to distinguish between "characters" and "keys".
+A "key" is a physical button on the computer's keyboard.
+A "character" is a symbol typed by pressing a button.
+On a US keyboard, hitting the <span class="key">4</span> key
+while holding down the <span class="key">Shift</span> key
+typically produces a "dollar sign" character.
+This is not necessarily the case on every keyboard in the world.
+In theory, the <strong>keydown</strong> and <strong>keyup</strong>
+events represent keys being pressed or released,
+while the <strong>keypress</strong> event represents a character being
+typed.
+In practice, this is not always the way it is implemented.
+</p><p>
+For a while, some browers fired an additional event, called
+<strong>textInput</strong>, immediately after <strong>keypress</strong>.
+Early versions of the DOM 3 standard intended this as a replacement for the
+<strong>keypress</strong> event, but the whole notion was later revoked.
+Webkit supported this between versions 525 and 533, and I'm told IE supported
+it, but I never detected that, possibly because Webkit required it to be called
+"<tt>textInput</tt>" while IE called it "<tt>textinput</tt>".
+</p><p>
+There is also an event called <strong>input</strong>, supported by all
+browsers, which is fired just after a change is made to to a textarea or
+input field. Typically <strong>keypress</strong> will fire, then the typed
+charater will appear in the text area, then <strong>input</strong> will fire.
+The <strong>input</strong> event doesn't actually give any information about
+what key was typed - you'd have to inspect the textbox
+to figure it out what changed -
+so we don't really consider it a key event and don't really document it here.
+Though it was originally defined only for textareas and input boxes,
+I believe there is some movement toward generalizing it to fire on other
+types of objects as well.
+
+</p><h4>2.1.  Events Triggered by Special Keys</h4>
+
+In addition to all the normal keys used to input ASCII characters,
+keyboards typically have many special purpose keys that do other things.
+These do not necessarily generate the same events as normal keys, and
+they show less consistency across browsers.
+<p>
+"Modifier keys" are one class of special keys.  They include keys like
+<span class="key">Shift</span>, <span class="key">Control</span>
+and <span class="key">Alt</span>, that don't send
+characters, but modify the characters sent by other keys.
+For nearly all modern browsers,
+both <strong>keydown</strong> and <strong>keyup</strong>
+events are triggered by modifier keys, but <strong>keypress</strong> events
+are not.
+This is consistant with their being "key" events not "character" events.
+</p><p>
+However, Konqueror and some older browser versions do have different behaviors:
+</p><blockquote>
+<table border="1">
+
+<tbody><tr><td><em>Browser</em></td>
+<td><em>Events sent when modifier keys are typed</em></td></tr>
+
+<tr><td>
+Gecko &#8805; 1.7
+<br>
+Internet&nbsp;Explorer<br>
+WebKit &#8805; 525<br>
+Opera &#8805; 10.10
+</td>
+<td align="center">
+<strong>keydown</strong><br>
+&nbsp;<br>
+<strong>keyup</strong>
+</td></tr>
+
+<tr><td>
+Opera &#8804; 9.50<br>
+Konqueror
+</td>
+<td align="center">
+<strong>keydown</strong><br>
+<strong>keypress</strong><br>
+&nbsp;<br>
+<strong>keyup</strong>
+</td></tr>
+
+<tr><td>
+WebKit &lt; 525<br>
+Gecko 1.6
+</td>
+<td align="center">
+no events sent
+</td></tr>
+
+</tbody></table>
+</blockquote>
+<p>
+Most browsers treat the <span class="key">Caps&nbsp;Lock</span> key the same
+as any other modifier key, sending <strong>keydown</strong>
+when it is depressed and <strong>keyup</strong> when it is released,
+but there are exceptions.
+Older Gecko browsers generated a <strong>keypress</strong> event for
+<span class="key">Caps&nbsp;Lock</span>, but that has been fixed.
+Macintosh versions of Safari 3 get really clever:
+each time you strike and release the <span class="key">Caps&nbsp;Lock</span>
+key, only one event is triggered, and it is <strong>keydown</strong>
+if you turning on caps-lock mode and <strong>keyup</strong>
+if you are turning it off.
+Safari does not do this with <span class="key">Num&nbsp;Lock</span>.
+</p><p>
+There are many other special keys on a typical keyboard that do not normally
+send characters.
+These include the four arrow keys, navigation keys like
+<span class="key">Home</span> and
+<span class="key">Page Up</span>,
+special function keys like
+<span class="key">Insert</span> and
+<span class="key">Delete</span>,
+and the function keys
+<span class="key">F1</span> through
+<span class="key">F12</span>.
+Internet Explorer and WebKit 525 seem to classify all of these
+with the modifier keys, since they generate no text,
+so in those browsers there is no <strong>keypress</strong> event
+for them, only <strong>keyup</strong> and <strong>keydown</strong>.
+Many other browsers, like Gecko,
+do generate <strong>keypress</strong> events for these keys, however.
+</p><p>
+Old versions of WebKit had a bug that caused two identical
+<strong>keyup</strong> events to be triggered when arrow keys and other
+special keys were released.
+I know this existed in WebKit 312 and I know it was fixed in WebKit 525, but
+I don't know when it was fixed.
+</p><p>
+Standard Windows keyboards typically have two <span class="key">Start</span>
+keys and a <span class="key">Menu</span> key, while Apple keyboards have two
+Apple keys.  I'm not going to attempt to describe the behavior of those keys
+in detail here.
+They are very inconsistent across browsers,
+don't exist on all keyboards,
+and they frequently have default actions that cannot be disabled.
+As such, Javascript programmers would be well advised to stay away from
+them.
+</p><p>
+If <span class="key">NumLock</span> is off, and you hit keypad number key
+while holding <span class="key">Shift</span> down, then Windows systems
+trigger some extra events.  Windows browsers pretend that the
+<span class="key">Shift</span> key was released before the key was typed,
+and then pressed again after it was released, and they trigger 
+<strong>keyup</strong>, <strong>keydown</strong> and (in some
+browsers) <strong>keypress</strong> events to indicate this.
+Linux systems don't do this.  I don't know if Macintoshes do.
+
+</p><h4>2.2. Events Triggered on Auto-Repeat</h4>
+
+If a key is held down long enough it typically auto-repeats,
+and some additional events will be triggered on each autorepeat.
+On Macintosh and Linux systems, modifier keys usually don't auto-repeat,
+but on Windows systems they do (which seems weird to me).
+In most browsers, an autorepeat is sensibly treated as a character event,
+but not a key event, so it triggers a <strong>keypress</strong> but
+not a <strong>keydown</strong> or <strong>keyup</strong>.
+But, of course, there is some variation:
+<blockquote>
+<table border="1">
+
+<tbody><tr><td rowspan="2"><em>Browser</em></td>
+<td colspan="2"><em>Events triggered on each autoreapeat</em></td></tr>
+<tr><td align="center"><em>normal keys</em></td>
+<td align="center"><em>special keys</em></td></tr>
+
+<tr><td>
+Internet&nbsp;Explorer (Windows)
+<br>
+WebKit &#8805; 534
+</td><td align="center">
+<strong>keydown</strong><br>
+<strong>keypress</strong>
+</td>
+<td align="center">
+<strong>keydown</strong><br>
+</td>
+</tr>
+
+<tr><td>
+525 &#8804; WebKit &#8804; 533
+</td><td align="center">
+<strong>keydown</strong><br>
+<strong>keypress</strong><br>
+<strong>textInput</strong>
+</td>
+<td align="center">
+<strong>keydown</strong><br>
+</td>
+</tr>
+
+<tr><td>
+Gecko (Windows)
+</td><td colspan="2" align="center">
+<strong>keydown</strong><br>
+<strong>keypress</strong>
+</td></tr>
+
+<tr><td>
+Gecko&nbsp;(Some&nbsp;Linuxs) <br>
+Gecko&nbsp;(Macintosh) <br>
+WebKit &lt; 525<br>
+Konqueror <br>
+Opera <br>
+</td><td colspan="2" align="center">
+<strong>keypress</strong> only
+</td></tr>
+
+<tr><td>
+Gecko&nbsp;(Oher&nbsp;Linuxs)
+</td><td colspan="2" align="center">
+<strong>keyup</strong> <br>
+<strong>keydown</strong> <br>
+<strong>keypress</strong>
+</td></tr>
+
+<tr><td>
+Internet&nbsp;Explorer&nbsp;(Macintosh)
+</td><td colspan="2" align="center">
+<em>no events triggered</em>
+</td></tr>
+
+</tbody></table>
+</blockquote>
+
+Gecko's behavior seems to be different on different versions of Linux.
+On some versions of Linux, mostly newer versions, it generates extra
+events, in a manner only previously seen on iCab 3.
+I don't know exactly what makes the difference.
+
+<h4>2.3. Suppressing Default Event Handling</h4>
+
+If you are installing your own handlers for key events, then sometimes
+you won't want the browser default action to occur (such as having the
+character appear in a text entry area).  To prevent this, you typically
+have the event handler return <tt>false</tt>, and maybe call
+<tt>event.preventDefault()</tt> and <tt>event.stopPropagation()</tt> if they are
+defined.  But on which event handler must you suppress defaults?
+This, of course, varies from browser to browser.
+<p>
+</p><blockquote>
+<table border="1">
+
+<tbody><tr><td><em>Browser</em></td>
+<td><em>Which event handlers need to suppress defaults to prevent
+key from appearing in text box</em></td></tr>
+
+<tr><td>
+Internet&nbsp;Explorer<br>
+Gecko<br>
+Webkit<br>
+Opera &#8805; 11.52<br>
+Konqueror 4.3
+</td>
+<td>
+either <strong>keydown</strong> or <strong>keypress</strong>
+</td></tr>
+
+<tr><td>
+Opera &#8804; 10.53<br>
+Konqueror 3.5
+</td>
+<td>
+<strong>keypress</strong>
+</td></tr>
+
+<tr><td>
+Konqueror 3.2
+</td>
+<td>
+<strong>keydown</strong>
+</td></tr>
+
+</tbody></table>
+</blockquote>
+<p>
+Suppressing defaults on the <strong>keydown</strong> event 
+has some odd side effects on some browsers,
+in that it may prevent some other events from firing.
+Apparantly, triggering further events is taken to be part of the default
+action of the <strong>keydown</strong> event in these browsers.
+</p><blockquote>
+<table border="1">
+
+<tbody><tr><td><em>Browser</em></td>
+<td><em>Side effect suppressing defaults on <strong>keydown</strong>
+</em></td></tr>
+
+<tr><td>
+Gecko<br>
+WebKit &lt; 525<br>
+Opera
+</td>
+<td>
+No change
+</td></tr>
+
+<tr><td>
+Internet&nbsp;Explorer
+<br>
+WebKit &#8805; 525
+</td>
+<td>
+<strong>keypress</strong> event never occurs.<br>
+<strong>keyup</strong> event works normally.
+</td></tr>
+
+<tr><td>
+Konqueror
+</td>
+<td>
+<strong>keypress</strong> event only occurs on auto repeats.<br>
+<strong>keyup</strong> event works normally.
+</td></tr>
+
+</tbody></table>
+</blockquote>
+In versions of WebKit and IE that supported 
+<strong>textInput</strong>, that event would not fire if
+<strong>keydown</strong> or <strong>keypress</strong> suppressed defaults.
+Suppressing defaults on that event would prevent the typed character from
+appearing in input boxes.
+<p>
+In Konqueror 4.3.1, I noticed a brand new weirdness.
+If you don't suppress the default action on <strong>keyup</strong> then you
+get two <strong>keyup</strong> events.
+I also seemed to sometimes get duplicate <strong>keydown</strong> and
+<strong>keypress</strong> events if defaults weren't suppressed on either
+<strong>keydown</strong> or <strong>keypress</strong>.
+</p><p>
+Most applications will either use only <strong>keypress</strong> or
+use only <strong>keyup/keydown</strong>,
+so this all works out pretty well in most browsers.
+If you are handling <strong>keypress</strong> and want to suppress
+default handling of the key, return <tt>false</tt> from that handler.
+If you are handling <strong>keydown/keyup</strong> and want to suppress
+defaults, install a <strong>keypress</strong> handler that does nothing
+except return false.
+
+</p><h4>2.4. Event Triggering Summary</h4>
+
+To give a clearer side by side comparison,
+suppose we press the <span class="key">Shift</span> key,
+then press the <span class="key">A</span> key,
+holding it down long enough to auto-repeat just once, then release <span class="key">A</span>,
+and the release <span class="key">Shift</span>.
+ The events we see are shown below for various browsers.
+Events marked in red do not occur if there is a <strong>keydown</strong>
+handler that returns <tt>false</tt>.
+<blockquote>
+<table border="1">
+<tbody><tr><td></td>
+<td align="center">Internet Explorer<br>(Windows)<br>WebKit&#8805;534</td>
+<td align="center">Gecko<br>(Windows)</td>
+<td align="center">Gecko<br>(Linux/Mac)<br>Opera&#8805;10.10</td>
+<td align="center">525&#8804;WebKit&#8804;533</td>
+<td align="center">WebKit&lt;525</td>
+<td align="center">Opera&#8804;9.50</td>
+<td align="center">Konqueror</td>
+<td align="center">Internet Explorer<br>(Mac)</td>
+</tr>
+
+<tr><td><span class="key">Shift</span> pressed</td>
+<td align="center"><strong>keydown</strong><br>&nbsp;</td>
+<td align="center"><strong>keydown</strong><br>&nbsp;</td>
+<td align="center"><strong>keydown</strong><br>&nbsp;</td>
+<td align="center"><strong>keydown</strong><br>&nbsp;</td>
+<td align="center">&nbsp;</td>
+<td align="center"><strong>keydown<br>keypress</strong></td>
+<td align="center"><strong>keydown</strong><br><font color="red"><strong>keypress</strong></font></td>
+<td align="center"><strong>keydown</strong><br>&nbsp;</td>
+</tr>
+
+<tr><td><span class="key">A</span> pressed</td>
+<td align="center"><strong>keydown<br><font color="red">keypress</font></strong></td>
+<td align="center"><strong>keydown<br>keypress</strong></td>
+<td align="center"><strong>keydown<br>keypress</strong></td>
+<td align="center"><strong>keydown<br><font color="red">keypress<br>textInput</font></strong></td>
+<td align="center"><strong>keydown<br>keypress</strong></td>
+<td align="center"><strong>keydown<br>keypress</strong></td>
+<td align="center"><strong>keydown<br><font color="red">keypress</font></strong></td>
+<td align="center"><strong>keydown<br><font color="red">keypress</font></strong></td>
+</tr>
+
+<tr><td><span class="key">A</span> autorepeats</td>
+<td align="center">&nbsp;<br><strong>keydown<br><font color="red">keypress</font></strong></td>
+<td align="center">&nbsp;<br><strong>keydown<br>keypress</strong></td>
+<td align="center">&nbsp;<br>&nbsp;<br><strong>keypress</strong></td>
+<td align="center">&nbsp;<br><strong>keydown<br><font color="red">keypress<br>textInput</font></strong></td>
+<td align="center">&nbsp;<br>&nbsp;<br><strong>keypress</strong></td>
+<td align="center">&nbsp;<br>&nbsp;<br><strong>keypress</strong></td>
+<td align="center">&nbsp;<br>&nbsp;<br><strong>keypress</strong></td>
+<td align="center">&nbsp;</td>
+</tr>
+
+<tr><td><span class="key">A</span> released</td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+</tr>
+
+<tr><td><span class="key">Shift</span> released</td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center">&nbsp;</td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+<td align="center"><strong>keyup</strong></td>
+</tr>
+
+</tbody></table>
+</blockquote>
+<p>
+I used to exclaim here about no two browsers being alike here, but progress is
+being made.
+The newer versions of WebKit are identical to IE
+and Opera is identical to Linux/Mac versions of Gecko.
+
+</p><h3>3. Identifying Keys</h3>
+
+When you catch a keyboard event, you may wish to know which key was pressed.
+If so, you may be asking too much.
+This is a very big mess of browser incompatibilities and bugs.
+
+<h4>3.1. Classic Values Returned on Key Events</h4>
+
+The <strong>keydown</strong> and <strong>keyup</strong> events should return a
+code identifying a key, not a code identifying a character.
+It is not obvious how to do this.
+ASCII codes don't really suffice,
+since the same key can generate different characters (if combined with
+shift or control), and the same character can be generated by different
+keys (such as the numbers on the keyboard and the numbers on the keypad).
+Different browsers use different ways of assigning numeric codes to the
+different keys.
+We will call these "Mozilla keycodes",
+"IE keycodes", "Opera keycodes" and "psuedo-ASCII codes"
+and we'll explain them in more detail below.
+<p>
+Not only do the browsers differ in what values they return, they differ
+in where they return them.
+Three different properties of the event object may be used to return them.
+They are <tt>event.keyCode</tt>,
+<tt>event.which</tt>
+and <tt>event.charCode</tt>.
+</p><blockquote>
+<table border="1">
+<tbody><tr><td colspan="4" align="center"><strong>keydown and keyup events</strong></td></tr>
+
+<tr><td></td>
+<td align="center"><tt>event.keyCode</tt></td>
+<td align="center"><tt>event.which</tt></td>
+<td align="center"><tt>event.charCode</tt></td>
+</tr>
+
+<tr><td>IE&nbsp;&lt;9.0&nbsp;(Windows)</td>
+<td>IE keycode</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr>
+
+<tr><td>Internet Explorer&nbsp;(Mac)</td>
+<td>IE keycode</td>
+<td>undefined</td>
+<td>extended ASCII code</td>
+</tr>
+
+<tr><td>IE&nbsp;&#8805;&nbsp;9.0<br>WebKit &#8805; 525</td>
+<td>IE keycode</td>
+<td>IE keycode</td>
+<td>zero</td>
+</tr>
+
+<tr><td>WebKit &lt; 525</td>
+<td>IE keycode</td>
+<td>IE keycode</td>
+<td>ASCII code if ASCII character,<br>zero otherwise</td>
+</tr>
+
+<tr><td>Gecko</td>
+<td>Mozilla keycode</td>
+<td>Mozilla keycode</td>
+<td>zero</td>
+</tr>
+
+<tr><td>Opera &#8805; 9.50 (all platforms)<br>
+Opera 7 (Windows)</td>
+<td>Mozilla keycode
+except keypad and branded keys give Opera keycodes</td>
+<td>Mozilla keycode
+except keypad and branded keys give Opera keycodes</td>
+<td>undefined</td>
+</tr>
+
+<tr><td>Opera 8.0 to 9.27 (Windows)</td>
+<td>Opera keycode</td>
+<td>Opera keycode</td>
+<td>undefined</td>
+</tr>
+
+<tr><td>Opera &lt; 9.50 (Linux &amp; Macintosh)</td>
+<td>Pseudo-ASCII code</td>
+<td>Pseudo-ASCII code</td>
+<td>undefined</td>
+</tr>
+
+<tr><td>Konqueror 4.3</td>
+<td>Pseudo-ASCII code</td>
+<td>Pseudo-ASCII code</td>
+<td>zero</td>
+</tr>
+
+<tr><td>Konqueror 3.5</td>
+<td>Pseudo-ASCII code</td>
+<td>Pseudo-ASCII code if key has an ASCII code,<br>zero otherwise</td>
+<td>zero</td>
+</tr>
+
+<tr><td>Konqueror 3.2</td>
+<td>Pseudo-ASCII code</td>
+<td>Pseudo-ASCII code</td>
+<td>undefined</td>
+</tr>
+
+</tbody></table>
+</blockquote>
+
+In version 9.50, Opera abandoned Opera keycodes and Pseudo-ASCII keycodes
+in favor of Mozilla keycodes for most keys
+(thus reverting to the behavior of Windows Opera 7).
+WebKit has modified their Konqueror-derived code to use IE keycodes, and
+I expect Konqueror will follow.
+Thus there seems to be a convergences on the IE and Mozilla keycodes, which
+are pretty similar.
+This is kind of encouraging.
+<p>
+On <strong>keydown</strong> and <strong>keyup</strong>, the event objects
+also have flags that indicate which modifier keys were being pressed
+when the key was typed.  These are:
+</p><pre>   event.shiftKey
+   event.ctrlKey
+   event.altKey
+   event.metaKey
+</pre>
+These all have <tt>true</tt> or <tt>false</tt> values.
+According to the DOM 3 standard,
+on the Macintosh,
+the <span class="key">Option</span> key should activate <tt>event.altKey</tt>
+and the <span class="key">Command</span> key
+should activate <tt>event.metaKey</tt>.
+These attributes seem to work correctly on all modern browsers tested,
+except <tt>event.metaKey</tt> is undefined in all versions IE.
+There is some freakishness in obsolete browsers that can probably be ignored
+these days.
+In Macintosh versions of IE, the <span class="key">Command</span> key sets
+<tt>event.ctrlKey</tt> and the <span class="key">Control</span> key
+does nothing.
+In Netscape 4, none of these attributes existed and the
+<tt>event.modifiers</tt> attribute needed to be used instead.
+<p>
+One would think that if a key is typed when <span class="key">Caps Lock</span>
+is on, then <tt>event.shiftKey</tt> would be <tt>true</tt>, but this is not
+the case in any browser tested.
+There is also a lot of inconsistency in the values these flags take 
+on the <strong>keydown</strong> and <strong>keyup</strong> events actually
+associated with pressing and releasing the modifier keys, but I can't imagine
+anyone would care enough to justify documenting the details.
+
+</p><h4>3.2. Classic Values Returned on Character Events</h4>
+
+For <strong>keypress</strong> events, it is pretty clear that
+the ASCII code of the typed character should be returned, and
+pretty much all browsers do that.
+<p>
+But what if there is no ASCII code associated with the key?
+Arrow keys and keys like <span class="key">Page Down</span> and
+<span class="key">F1</span> don't have ASCII codes.
+We call these "special" keys in contrast to the "normal" keys that have ASCII
+codes.
+Note that <span class="key">Esc</span>,
+<span class="key">Backspace</span>,
+<span class="key">Enter</span>,
+and <span class="key">Tab</span>
+are "normal" because they have ASCII codes.
+</p><p>
+When <strong>keypress</strong> events are generated for special keys,
+the browser needs to return some non-ASCII value to indicate which key
+ways pressed.  We'll see that various different browsers do this in different
+ways.
+</p><p>
+Some browsers avoid this problem by not generating <strong>keypress</strong>
+events for special keys.
+A good case can be made that this is the right thing to do, since these
+keystrokes are arguably not character events.
+But such arguments are weakened by the arbitrariness of the division between
+normal and special keys.
+Why should the keyboard <span class="key">Backspace</span> key have a
+<strong>keypress</strong> event,
+but not the keypad <span class="key">Delete</span> key?
+Is <span class="key">Tab</span> really fundamentally different than 
+<span class="key">right arrow</span>?
+
+</p><blockquote>
+<table border="1">
+<tbody><tr><td colspan="5" align="center"><strong>keypress events</strong></td></tr>
+
+<tr><td colspan="2"></td>
+<td align="center"><tt>event.keyCode</tt></td>
+<td align="center"><tt>event.which</tt></td>
+<td align="center"><tt>event.charCode</tt></td>
+</tr>
+
+<tr><td rowspan="2">IE &lt;&nbsp;9.0 (Windows)</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>undefined</td>
+<td>undefined</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td colspan="3" align="center"><em>no keypress events for special keys</em></td>
+</tr>
+
+<tr><td rowspan="2">IE (Mac)</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>undefined</td>
+<td>ASCII code</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td colspan="3" align="center"><em>no keypress events for special keys</em></td>
+</tr>
+
+
+<tr><td rowspan="2">Gecko</td>
+<td>normal:</td>
+<td>zero</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td>Mozilla keycode</td>
+<td>zero</td>
+<td>zero</td>
+</tr>
+
+<tr><td rowspan="2">IE &#8805; 9.0<br>WebKit &#8805; 525</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td colspan="3" align="center"><em>no keypress events for special keys</em></td>
+</tr>
+
+<tr><td rowspan="2">WebKit &lt; 525</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td>extended ASCII code</td>
+<td>extended ASCII code</td>
+<td>extended ASCII code</td>
+</tr>
+
+<tr><td rowspan="2">Opera &#8805; 10.50 (all platforms)</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+<td>undefined</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td>Mozilla keycode,
+except keypad and branded keys give Opera keycodes</td>
+<td>zero</td>
+<td>undefined</td>
+</tr>
+
+<tr><td rowspan="2">Opera &#8805; 9.50 (all platforms)<br>
+Opera 7 (Windows)</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+<td>undefined</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td>Mozilla keycode,
+except keypad and branded keys give Opera keycodes</td>
+<td>zero for arrows, function keys, PageUp, PageDown<br>
+same as <tt>event.keyCode</tt> otherwise</td>
+<td>undefined</td>
+</tr>
+
+<tr><td rowspan="2">Opera 8.0 to 9.27 (Windows)</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+<td>undefined</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td>Opera keycode</td>
+<td>zero for arrows, function keys, PageUp and PageDown,<br>
+same as <tt>event.keyCode</tt> otherwise</td>
+<td>undefined</td>
+</tr>
+
+
+<tr><td rowspan="2">Opera &lt; 9.50 (Linux &amp; Macintosh)</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+<td>undefined</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td>Opera keycode</td>
+<td>zero for arrows, function keys, PageUp and PageDown,<br>
+same as <tt>event.keyCode</tt> otherwise</td>
+<td>undefined</td>
+</tr>
+
+<tr><td rowspan="2">Konqueror 4.3</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td>Pseudo-ASCII code</td>
+<td>Pseudo-ASCII code</td>
+<td>zero</td>
+</tr>
+
+<tr><td rowspan="2">Konqueror 3.5</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td>Pseudo-ASCII code</td>
+<td>zero</td>
+<td>zero</td>
+</tr>
+
+<tr><td rowspan="2">Konqueror 3.2</td>
+<td>normal:</td>
+<td>ASCII code</td>
+<td>ASCII code</td>
+<td>undefined</td>
+</tr><tr bgcolor="#cccccc">
+<td>special:</td>
+<td colspan="3" align="center"><em>no keypress events for special keys</em></td>
+</tr>
+
+</tbody></table>
+</blockquote>
+
+The traditional method to distinguish special keys from normal keys on
+<strong>keypress</strong> events
+is to first
+check <tt>event.which</tt>.  If it is undefined or non-zero, then the
+event is from a normal key, and the ASCII code for that key is in
+<tt>event.keyCode</tt>.  If it is defined as zero, the the event is from
+a special key, and the keycode is in <tt>event.keyCode</tt>.
+This works for almost every browser,
+but there are two exceptions:
+<ul>
+<li> The newest version of Konqueror that I have tested, version 4.3.1,
+returns non-zero <tt>event.which</tt> values for all special keys.
+The only way to distinguish an up arrow from an ampersand is to check
+<tt>event.charCode</tt>.
+</li><li> Versions of Opera before 10.50 messes up by returning
+non-zero <tt>event.which</tt> values for four special keys
+(<span class="key">Insert</span>,
+<span class="key">Delete</span>,
+<span class="key">Home</span> and
+<span class="key">End</span>).
+</li></ul>
+So, I guess with this new botched version of Konqueror, we have to make
+our tests more complex.  If neither <tt>event.which</tt> nor
+<tt>event.charCode</tt> is defined as zero, then it is a normal key
+event.
+<p>
+The DOM 3 standard makes a half-hearted attempt to suggest standards for
+these "legacy" attributes.  Konqueror's annoying non-zero <tt>event.which</tt>
+values for special keys actually kind of comply with what it suggests.
+Except by that standard, <strong>keypress</strong> shouldn't be firing at
+all for special keys.
+</p><p>
+If you are actually interested in special key events, then probably
+you should be hooking your code into <strong>keydown</strong> and
+<strong>keyup</strong>, which work more consistently across browsers.
+So the main practical importance of this is that <strong>keypress</strong>
+handlers should not treat <tt>event.keyCode</tt> as an ASCII code
+if either <tt>event.which</tt> or <tt>event.charCode</tt> is defined as zero.
+</p><p>
+The flags
+<tt>event.shiftKey</tt>,
+<tt>event.ctrlKey</tt>,
+<tt>event.altKey</tt> and
+<tt>event.metaKey</tt>
+are typically defined on <strong>keypress</strong> events,
+just as they are on <strong>keydown</strong> and <strong>keyup</strong>
+events.  WebKit seems to define <tt>event.keyIdentifier</tt> on
+<strong>keypress</strong> as well, but I wouldn't count on future browsers
+doing that.
+</p><p>
+On <strong>textInput</strong> events, <tt>event.data</tt> contained
+the text that was input.  On key inputs, this was typically a one character
+string.  Since there were no <strong>textInput</strong> events on special
+keys, we didn't have to worry about such cases.
+
+</p><h4>3.3. Key Code Values</h4>
+
+Now for the actual values being returned for different keys.
+Some people refer to the Mozilla/IE keycodes as "scan codes".
+Scan codes are returned from the keyboard, and are converted to ASCII
+by the keyboard drivers.
+They typically vary with different kinds of keyboards.
+As far as I can tell, these are NOT scan codes.
+They vary with the browser type rather more than with keyboard type,
+and they don't seem to match with any keyboard scan codes that I've
+seen documented.
+<p>
+The table below lists values for keys commonly found on US keyboards.
+If a single value is given, then that value is sent whether the
+<span class="key">Shift</span> key is held down or not.
+If two values <em>x</em>/<em>y</em> are given, the the first is sent when
+the key is unshifted, and the second is sent when the key is shifted.
+(Ideally there should be slashed values only in the ASCII column of this table,
+since the other codes are all used only on <strong>keyup</strong> 
+and <strong>keydown</strong> events,
+which are key events not character events.)
+</p><p>
+Keys highlighted in green are consistent across all browsers tested.
+Keys highlighted in yellow are consistent for recent versions of IE,
+Gecko, WebKit and Opera.  Keys highlighted in red aren't.
+
+</p><blockquote>
+<table border="1">
+
+<tbody><tr><th>Key</th>
+<th>ASCII</th>
+<th>Mozilla keycodes</th>
+<th>IE keycodes</th>
+<th>Opera keycodes</th>
+<th>pseudo ASCII codes</th>
+<th>exceptions</th>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center">Alphabetic keys<br>
+<span class="key">A</span> to <span class="key">Z</span></td>
+<td bgcolor="#00ff00" align="center">97/65 to 122/90</td>
+<td colspan="4" align="center">ASCII code of uppercase version of the letter<br>
+65 to 90</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Space</span></td>
+<td bgcolor="#00ff00" align="center">32</td>
+<td align="center">32</td>
+<td align="center">32</td>
+<td align="center">32</td>
+<td align="center">32</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Enter</span></td>
+<td bgcolor="#00ff00" align="center">13</td>
+<td align="center">13</td>
+<td align="center">13</td>
+<td align="center">13</td>
+<td align="center">13</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Tab</span></td>
+<td bgcolor="#00ff00" align="center">9</td>
+<td align="center">9</td>
+<td align="center">9</td>
+<td align="center">9</td>
+<td align="center">9</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Esc</span></td>
+<td bgcolor="#00ff00" align="center">27</td>
+<td align="center">27</td>
+<td align="center">27</td>
+<td align="center">27</td>
+<td align="center">27</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Backspace</span></td>
+<td bgcolor="#00ff00" align="center">8</td>
+<td align="center">8</td>
+<td align="center">8</td>
+<td align="center">8</td>
+<td align="center">8</td>
+</tr>
+
+<tr><td colspan="7"><strong>Modifier Keys</strong></td></tr>
+<tr><th>Key</th>
+<th>ASCII</th>
+<th>Mozilla keycodes</th>
+<th>IE keycodes</th>
+<th>Opera keycodes</th>
+<th>pseudo ASCII codes</th>
+<th>exceptions</th>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Shift</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">16</td>
+<td align="center">16</td>
+<td align="center">16</td>
+<td align="center">16</td>
+<td><strong>Linux Opera &lt; 9.0</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Control</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">17</td>
+<td align="center">17</td>
+<td align="center">17</td>
+<td align="center">17</td>
+<td><strong>Linux Opera &lt; 9.0</strong>: 0<br>
+<strong>Mac Opera</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Alt</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">18</td>
+<td align="center">18</td>
+<td align="center">18</td>
+<td align="center">18</td>
+<td><strong>Linux Opera &lt; 9.0</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Caps&nbsp;Lock</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">20</td>
+<td align="center">20</td>
+<td align="center">20</td>
+<td align="center">20</td>
+<td><strong>Linux Opera</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Num&nbsp;Lock</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">144</td>
+<td align="center">144</td>
+<td align="center">144</td>
+<td align="center">144</td>
+<td><strong>Linux Opera &lt; 9.50</strong>: 0<br>
+<strong>Win Opera &lt; 9.00</strong>: 0
+</td>
+</tr>
+
+<tr><td colspan="7"><strong>Keyboard Number Keys</strong></td></tr>
+<tr><th>Key</th>
+<th>ASCII</th>
+<th>Mozilla keycodes</th>
+<th>IE keycodes</th>
+<th>Opera keycodes</th>
+<th>pseudo ASCII codes</th>
+<th>exceptions</th>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">1 !</span></td>
+<td bgcolor="#ffff00" align="center">49/33</td>
+<td align="center">49</td>
+<td align="center">49</td>
+<td align="center">49</td>
+<td align="center">49/33</td>
+<td><strong>Mac Gecko &lt; 1.8</strong>: 49/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">2 @</span></td>
+<td bgcolor="#ffff00" align="center">50/64</td>
+<td align="center">50</td>
+<td align="center">50</td>
+<td align="center">50</td>
+<td align="center">50/64</td>
+<td><strong>Mac Gecko &lt; 1.9</strong>: 50/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">3 #</span></td>
+<td bgcolor="#ffff00" align="center">51/35</td>
+<td align="center">51</td>
+<td align="center">51</td>
+<td align="center">51</td>
+<td align="center">51/35</td>
+<td><strong>Mac Gecko &lt; 1.9</strong>: 51/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">4 $</span></td>
+<td bgcolor="#ffff00" align="center">52/36</td>
+<td align="center">52</td>
+<td align="center">52</td>
+<td align="center">52</td>
+<td align="center">52/36</td>
+<td><strong>Mac Gecko &lt; 1.9</strong>: 52/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">5 %</span></td>
+<td bgcolor="#ffff00" align="center">53/37</td>
+<td align="center">53</td>
+<td align="center">53</td>
+<td align="center">53</td>
+<td align="center">53/37</td>
+<td><strong>Mac Gecko &lt; 1.9</strong>: 53/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">6 ^</span></td>
+<td bgcolor="#ffff00" align="center">54/94</td>
+<td align="center">54</td>
+<td align="center">54</td>
+<td align="center">54</td>
+<td align="center">54/94</td>
+<td><strong>Mac Gecko &lt; 1.9</strong>: 54/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">7 &amp;</span></td>
+<td bgcolor="#ffff00" align="center">55/38</td>
+<td align="center">55</td>
+<td align="center">55</td>
+<td align="center">55</td>
+<td align="center">55/38</td>
+<td><strong>Mac Gecko &lt; 1.9</strong>: 55/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">8 *</span></td>
+<td bgcolor="#ffff00" align="center">56/42</td>
+<td align="center">56</td>
+<td align="center">56</td>
+<td align="center">56</td>
+<td align="center">56/42</td>
+<td><strong>Mac Gecko &lt; 1.9</strong>: 56/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">9 (</span></td>
+<td bgcolor="#ffff00" align="center">57/40</td>
+<td align="center">57</td>
+<td align="center">57</td>
+<td align="center">57</td>
+<td align="center">57/40</td>
+<td><strong>Mac Gecko &lt; 1.9</strong>: 57/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">0 )</span></td>
+<td bgcolor="#ffff00" align="center">48/41</td>
+<td align="center">48</td>
+<td align="center">48</td>
+<td align="center">48</td>
+<td align="center">48/41</td>
+<td><strong>Mac Gecko &lt; 1.9</strong>: 48/0</td>
+</tr>
+
+<tr><td colspan="7"><strong>Symbol Keys</strong></td></tr>
+<tr><th>Key</th>
+<th>ASCII</th>
+<th>Mozilla keycodes</th>
+<th>IE keycodes</th>
+<th>Opera keycodes</th>
+<th>pseudo ASCII codes</th>
+<th>exceptions</th>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center"><span class="key">; :</span></td>
+<td bgcolor="#ff0000" align="center">59/58</td>
+<td align="center">59</td>
+<td align="center">186</td>
+<td align="center">59</td>
+<td align="center">59/58</td>
+<td><strong>Mac Gecko</strong>: 59/0</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center"><span class="key">= +</span></td>
+<td bgcolor="#ff0000" align="center">61/43</td>
+<td align="center">61</td>
+<td align="center">187</td>
+<td align="center">61</td>
+<td align="center">61/43</td>
+<td><strong>Mac Gecko &#8805; 1.9</strong>: 61/107<br>
+<strong>Mac Gecko &lt; 1.9</strong>: 61/0</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center"><span class="key">, &lt;</span></td>
+<td bgcolor="#ff0000" align="center">44/60</td>
+<td align="center">188</td>
+<td align="center">188</td>
+<td align="center">44</td>
+<td align="center">44/60</td>
+<td><strong>Mac Gecko</strong>: 188/0</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center"><span class="key">- _</span></td>
+<td bgcolor="#ff0000" align="center">45/95</td>
+<td align="center">109</td>
+<td align="center">189</td>
+<td align="center">45</td>
+<td align="center">45/95</td>
+<td>
+<strong>Mac Gecko &#8805; 1.9</strong>: 109/0<br>
+<strong>Mac Gecko &lt; 1.9</strong>: 0
+</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center"><span class="key">. &gt;</span></td>
+<td bgcolor="#ff0000" align="center">46/62</td>
+<td align="center">190</td>
+<td align="center">190</td>
+<td align="center">46</td>
+<td align="center">46/62</td>
+<td><strong>Mac Gecko</strong>: 190/0</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center"><span class="key">/ ?</span></td>
+<td bgcolor="#ff0000" align="center">47/63</td>
+<td align="center">191</td>
+<td align="center">191</td>
+<td align="center">47</td>
+<td align="center">47/63</td>
+<td><strong>Mac Gecko</strong>: 191/0</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center"><span class="key">` ~</span></td>
+<td bgcolor="#ff0000" align="center">96/126</td>
+<td align="center">192</td>
+<td align="center">192</td>
+<td align="center">96</td>
+<td align="center">96/126</td>
+<td><strong>Mac Gecko</strong>: 192/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">[ {</span></td>
+<td bgcolor="#ffff00" align="center">91/123</td>
+<td align="center">219</td>
+<td align="center">219</td>
+<td align="center">91</td>
+<td align="center">91/123</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center"><span class="key">\ |</span></td>
+<td bgcolor="#ff0000" align="center">92/124</td>
+<td align="center">220</td>
+<td align="center">220</td>
+<td align="center">92</td>
+<td align="center">92/124</td>
+<td><strong>Mac Gecko</strong>: 220/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">] }</span></td>
+<td bgcolor="#ffff00" align="center">93/125</td>
+<td align="center">221</td>
+<td align="center">221</td>
+<td align="center">93</td>
+<td align="center">93/125</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">' "</span></td>
+<td bgcolor="#ffff00" align="center">39/34</td>
+<td align="center">222</td>
+<td align="center">222</td>
+<td align="center">39</td>
+<td align="center">39/34</td>
+</tr>
+
+<tr><td colspan="7"><strong>Arrow Keys</strong></td></tr>
+<tr><th>Key</th>
+<th>ASCII</th>
+<th>Mozilla keycodes</th>
+<th>IE keycodes</th>
+<th>Opera keycodes</th>
+<th>pseudo ASCII codes</th>
+<th>exceptions</th>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">left-arrow</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">37</td>
+<td align="center">37</td>
+<td align="center">37</td>
+<td align="center">37</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">up-arrow</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">38</td>
+<td align="center">38</td>
+<td align="center">38</td>
+<td align="center">38</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">right-arrow</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">39</td>
+<td align="center">39</td>
+<td align="center">39</td>
+<td align="center">39</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">down-arrow</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">40</td>
+<td align="center">40</td>
+<td align="center">40</td>
+<td align="center">40</td>
+</tr>
+
+<tr><td colspan="7"><strong>Special Keys</strong></td></tr>
+<tr><th>Key</th>
+<th>ASCII</th>
+<th>Mozilla keycodes</th>
+<th>IE keycodes</th>
+<th>Opera keycodes</th>
+<th>pseudo ASCII codes</th>
+<th>exceptions</th>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Insert</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">45</td>
+<td align="center">45</td>
+<td align="center">45</td>
+<td align="center">45</td>
+<td><strong>Konqueror</strong>: 0<br>
+<strong>Opera &lt; 9.0</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Delete</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">46</td>
+<td align="center">46</td>
+<td align="center">46</td>
+<td align="center">46</td>
+<td><strong>Konqueror</strong>: 127<br>
+<strong>Opera &lt; 9.0</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Home</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">36</td>
+<td align="center">36</td>
+<td align="center">36</td>
+<td align="center">36</td>
+<td><strong>Opera &lt; 9.0</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">End</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">35</td>
+<td align="center">35</td>
+<td align="center">35</td>
+<td align="center">35</td>
+<td><strong>Opera &lt; 9.0</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Page Up</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">33</td>
+<td align="center">33</td>
+<td align="center">33</td>
+<td align="center">33</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center"><span class="key">Page Down</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">34</td>
+<td align="center">34</td>
+<td align="center">34</td>
+<td align="center">34</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center">Function Keys<br>
+<span class="key">F1</span> to <span class="key">F12</span></td>
+<td bgcolor="#00ff00" align="center">-</td>
+<td align="center">112 to 123</td>
+<td align="center">112 to 123</td>
+<td align="center">112 to 123</td>
+<td align="center">112 to 123</td>
+</tr>
+
+
+<tr><td colspan="7"><strong>Keypad Keys</strong><br>
+If Num Lock is on, unshifted/shifted values are returned as shown below.
+If Num Lock is off,
+Linux browsers reverse the shifted/unshifted values,
+while Windows browsers always return the shifted value.
+None of my Macintoshs have a keypad, so I don't know what they do.
+</td></tr>
+<tr><th>Key</th>
+<th>ASCII</th>
+<th>Mozilla keycodes</th>
+<th>IE keycodes</th>
+<th>Opera keycodes</th>
+<th>pseudo ASCII codes</th>
+<th>exceptions</th>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">. Del</span></td>
+<td bgcolor="#ffff00" align="center">46/-</td>
+<td align="center">110/46</td>
+<td align="center">110/46</td>
+<td align="center">78/46</td>
+<td align="center">78/46</td>
+<td><strong>Opera &lt; 9.0</strong>: 78/0<br>
+<strong>Linux Opera 11.5</strong>: 190/46</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">0 Ins</span></td>
+<td bgcolor="#ffff00" align="center">48/-</td>
+<td align="center">96/45</td>
+<td align="center">96/45</td>
+<td align="center">48/45</td>
+<td align="center">48/45</td>
+<td><strong>Opera &lt; 9.0</strong>: 48/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">1 End</span></td>
+<td bgcolor="#ffff00" align="center">49/-</td>
+<td align="center">97/35</td>
+<td align="center">97/35</td>
+<td align="center">49/35</td>
+<td align="center">49/35</td>
+<td><strong>Opera &lt; 9.0</strong>: 49/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">2 down-arrow</span></td>
+<td bgcolor="#ffff00" align="center">50/-</td>
+<td align="center">98/40</td>
+<td align="center">98/40</td>
+<td align="center">50/40</td>
+<td align="center">50/40</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">3 Pg Dn</span></td>
+<td bgcolor="#ffff00" align="center">51/-</td>
+<td align="center">99/34</td>
+<td align="center">99/34</td>
+<td align="center">51/34</td>
+<td align="center">51/34</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">4 left-arrow</span></td>
+<td bgcolor="#ffff00" align="center">52/-</td>
+<td align="center">100/37</td>
+<td align="center">100/37</td>
+<td align="center">52/37</td>
+<td align="center">52/37</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">5</span></td>
+<td bgcolor="#ffff00" align="center">53/-</td>
+<td align="center">101/12</td>
+<td align="center">101/12</td>
+<td align="center">53/12</td>
+<td align="center">53/12</td>
+<td><strong>Linux Opera</strong>: 53/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">6 right-arrow</span></td>
+<td bgcolor="#ffff00" align="center">54/-</td>
+<td align="center">102/39</td>
+<td align="center">102/39</td>
+<td align="center">54/39</td>
+<td align="center">54/39</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">7 Home</span></td>
+<td bgcolor="#ffff00" align="center">55/-</td>
+<td align="center">103/36</td>
+<td align="center">103/36</td>
+<td align="center">55/36</td>
+<td align="center">55/36</td>
+<td><strong>Opera &lt; 9.0</strong>: 55/0</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">8 up-arrow</span></td>
+<td bgcolor="#ffff00" align="center">56/-</td>
+<td align="center">104/38</td>
+<td align="center">104/38</td>
+<td align="center">56/38</td>
+<td align="center">56/38</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">9 Pg Up</span></td>
+<td bgcolor="#ffff00" align="center">57/-</td>
+<td align="center">105/33</td>
+<td align="center">105/33</td>
+<td align="center">57/33</td>
+<td align="center">57/33</td>
+</tr>
+
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">+</span></td>
+<td bgcolor="#ffff00" align="center">43</td>
+<td align="center">107</td>
+<td align="center">107</td>
+<td align="center">43</td>
+<td align="center">43</td>
+<td><strong>Linux Opera 11.5</strong>: 61</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">-</span></td>
+<td bgcolor="#ffff00" align="center">45</td>
+<td align="center">109</td>
+<td align="center">109</td>
+<td align="center">45</td>
+<td align="center">45</td>
+<td><strong>Linux Opera 11.5</strong>: 109</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">*</span></td>
+<td bgcolor="#ffff00" align="center">42</td>
+<td align="center">106</td>
+<td align="center">106</td>
+<td align="center">42</td>
+<td align="center">42</td>
+<td><strong>Linux Opera 11.5</strong>: 56</td>
+</tr>
+
+<tr><td bgcolor="#ffff00" align="center"><span class="key">/</span></td>
+<td bgcolor="#ffff00" align="center">47</td>
+<td align="center">111</td>
+<td align="center">111</td>
+<td align="center">47</td>
+<td align="center">47</td>
+<td><strong>Linux Opera 11.5</strong>: 191</td>
+</tr>
+
+<tr><td bgcolor="#00ff00" align="center">Keypad <span class="key">Enter</span></td>
+<td bgcolor="#00ff00" align="center">13</td>
+<td align="center">13</td>
+<td align="center">13</td>
+<td align="center">13</td>
+<td align="center">13</td>
+</tr>
+
+<tr><td colspan="7"><strong>Branded Keys</strong></td></tr>
+<tr><th>Key</th>
+<th>ASCII</th>
+<th>Mozilla keycodes</th>
+<th>IE keycodes</th>
+<th>Opera keycodes</th>
+<th>pseudo ASCII codes</th>
+<th>exceptions</th>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center">Left Apple <span class="key">Command</span></td>
+<td bgcolor="#ff0000" align="center">-</td>
+<td align="center">224</td>
+<td align="center">?</td>
+<td align="center">17</td>
+<td align="center">?</td>
+<td><strong>WebKit &#8805; 525</strong>: 91</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center">Right Apple <span class="key">Command</span></td>
+<td bgcolor="#ff0000" align="center">-</td>
+<td align="center">224</td>
+<td align="center">?</td>
+<td align="center">17</td>
+<td align="center">?</td>
+<td><strong>WebKit &#8805; 525</strong>: 93</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center">Left Windows <span class="key">Start</span></td>
+<td bgcolor="#ff0000" align="center">-</td>
+<td align="center">91</td>
+<td align="center">91</td>
+<td align="center">219</td>
+<td align="center">0</td>
+<td><strong>Linux Gecko</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center">Right Windows <span class="key">Start</span></td>
+<td bgcolor="#ff0000" align="center">-</td>
+<td align="center">92</td>
+<td align="center">92</td>
+<td align="center">220</td>
+<td align="center">0</td>
+<td><strong>Linux Gecko</strong>: 0</td>
+</tr>
+
+<tr><td bgcolor="#ff0000" align="center">Windows <span class="key">Menu</span></td>
+<td bgcolor="#ff0000" align="center">-</td>
+<td align="center">93</td>
+<td align="center">93</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+
+</tbody></table>
+</blockquote>
+Note that all four encodings agree on most of the common keys, the ones
+highlighted in green in this table.
+For the letters and numbers and for spaces, tabs, enters, and arrows
+the codes are all the same.
+In fact, they are all standard ASCII values (except for the arrows).
+<p>
+For symbols, things are a fair mess.
+IE and Mozilla don't entirely agree on what the codes should be.
+Three keys,
+<span class="key">;&nbsp;:</span>,
+<span class="key">=&nbsp;+</span> and
+<span class="key">-&nbsp;_</span>,
+have different values in IE and Mozilla keycodes.
+Furthermore, there are
+long standing bugs in Macintosh versions of Gecko that have
+caused zero keyCodes to be returned for many symbols.
+</p><p>
+The Opera keycodes have been abandoned by Opera,
+but they had a certain simple charm.
+They were always the ASCII code of the character that the key sends when
+it is not modified by shift or control.
+They don't allow you to distinguish numbers typed on the keypad from 
+numbers typed on the keyboard, and such like things, but they are,
+at least, fairly intuitive.
+</p><p>
+The pseudo ASCII codes weren't really keycodes at all.
+They were just the ASCII code for the character
+<em>except</em> that for lower case letters the upper case
+ASCII code is sent.
+So those browsers really entirely abandoned the idea of keycodes, instead
+returning character codes slightly modified for partial IE compatibility.
+There is much to be said for abandoning keycodes, since the concept really
+gets you in trouble as you try to handle international keyboards,
+but something is lost when you do that.
+You can't, for example,
+tell if a number was typed on the main keyboard or the keypad.
+I prefer WebKit's approach, where they keep the keycodes (making them
+entirely compatible with IE keycodes) but <em>also</em> return the character
+code on all key events.
+</p><p>
+Using pseudo-ASCII codes causes another problem:
+you can't always recognize the arrow keys
+on <strong>keydown</strong> and <strong>keyup</strong> events.
+These browsers send the same codes as IE does for arrow keys:  the
+values 37, 38, 39, and 40.  These happen to be the ASCII codes for
+"<tt>%</tt>", "<tt>&amp;</tt>", "<tt>'</tt>" and "<tt>(</tt>".
+On U.S. keyboards all those five characters are sent by shifted keys,
+so you'll never see them as keycodes under any of the three keycode schemes.
+(Some foreign keyboards do create these characters from unshifted keys,
+but I don't know what keycodes are sent by those keys.)
+But when pseudo-ASCII keycodes are used
+these same values are also sent when you type those keys,
+so you can't tell those symbols from arrow keys.
+Similar problems occur with some of the other special keys like
+<span class="key">Home</span> which sends the same values as "<tt>$</tt>".
+</p><p>
+For browsers that generate <strong>keypress</strong> events 
+for special keys, it is also generally true that <tt>event.keyCode</tt>
+will have the same value for "left-arrow" and "%", however we can
+usually tell which it is because <tt>event.which</tt> is zero for special keys
+(there are problems with this in Opera and Konqueror, see above).
+Versions of WebKit before 525 took a different approach.  They invented
+unique values to return instead of ASCII codes for special keys, and
+returned the same value in <tt>event.keyCode</tt>, <tt>event.which</tt>,
+and <tt>event.charCode</tt>.
+The table below gives the extended ASCII codes returned by old WebKit
+versions, and also the ones returned in <tt>event.charCode</tt> on
+<strong>keydown</strong> and <strong>keyup</strong> events in Macintosh
+versions of IE.
+
+</p><blockquote>
+<table border="1">
+<tbody><tr><td rowspan="2" align="center"><em>key</em></td>
+<td colspan="9" align="center"><em>Extended ASCII codes for Special Keys</em></td></tr>
+<tr><td align="center">up arrow</td>
+<td align="center">down arrow</td>
+<td align="center">left arrow</td>
+<td align="center">right arrow</td>
+<td align="center">function keys<br>F1 to F12</td>
+<td align="center">Home</td>
+<td align="center">End</td>
+<td align="center">Page Up</td>
+<td align="center">Page Down</td>
+</tr>
+
+<tr><td align="center">WebKit &lt; 525</td>
+<td align="center">63232</td>
+<td align="center">63233</td>
+<td align="center">63234</td>
+<td align="center">63235</td>
+<td align="center">63236 to 63247</td>
+<td align="center">63273</td>
+<td align="center">63275</td>
+<td align="center">63276</td>
+<td align="center">63277</td>
+</tr>
+
+<tr><td align="center">Macintosh IE</td>
+<td align="center">30</td>
+<td align="center">31</td>
+<td align="center">28</td>
+<td align="center">29</td>
+<td align="center">16 for all keys</td>
+<td colspan="4" align="center"><em>no events triggered</em></td>
+</tr>
+</tbody></table>
+</blockquote>
+<p>
+To complete the thoroughness of the mess,
+keycode generation in current Macintosh versions of Gecko remains buggy.
+For many keys, no keycodes are returned on <strong>keydown</strong>
+and <strong>keyup</strong> events.  Instead the <tt>keyCode</tt> value is just
+zero.  Some of these problems were fixed in Gecko 1.9, but not all, and
+the keyboard plus key started returning the value that is supposed to be
+returned by the number pad plus key.
+</p><blockquote>
+<table border="1">
+<tbody><tr><td rowspan="2" align="center"><em>characters</em></td>
+<td colspan="3" align="center"><em>Keycodes on Gecko <strong>keyup</strong> and
+<strong>keydown</strong> events</em></td>
+</tr>
+<tr>
+<td align="center">Linux and Windows<br>Gecko (correct)</td>
+<td align="center">Macintosh Gecko 1.8 and older (buggy)</td>
+<td align="center">Macintosh Gecko 1.9 and later (buggy)</td>
+</tr>
+
+<tr>
+<td align="center">! @ # $ % ^ &amp; * ( )</td>
+<td align="center">Same as number keys these symbols appear on</td>
+<td bgcolor="yellow" align="center">zero</td>
+<td align="center">Same as number keys these symbols appear on</td>
+</tr>
+
+<tr>
+<td align="center">-</td>
+<td align="center">109</td>
+<td bgcolor="yellow" align="center">zero</td>
+<td align="center">109</td>
+</tr>
+
+<tr>
+<td align="center">_ ~ | &lt; &gt; ? :</td>
+<td align="center">Same as unshifted symbol keys these symbols appear on</td>
+<td bgcolor="yellow" align="center">zero</td>
+<td bgcolor="yellow" align="center">zero</td>
+</tr>
+
+<tr>
+<td align="center">+</td>
+<td align="center">61</td>
+<td bgcolor="yellow" align="center">zero</td>
+<td bgcolor="yellow" align="center">107</td>
+</tr>
+
+<tr>
+<td align="center">Any key typed with ALT key held down</td>
+<td align="center">Same code as without ALT key</td>
+<td bgcolor="yellow" align="center">zero</td>
+<td align="center">Same code as without ALT key</td>
+</tr>
+
+</tbody></table>
+</blockquote>
+Macintosh Gecko does give correct charCode values on
+<strong>keypress</strong> events,
+but to a <strong>keydown</strong> or <strong>keyup</strong> handler,
+all the keys that return zero above are indistinguishable.
+This bug was reported to Mozilla
+(bug <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=44259">44259</a>)
+in June 2000, and it took eight years to get the partial fixes out.
+Who knows when the rest (<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=448434">48434</a>) will be fixed.
+
+<h4>3.4. New Standard Key and Character Events</h4>
+
+The DOM3 standard abandons all hope of creating order among
+<tt>event.keyCode</tt>, <tt>event.which</tt> and <tt>event.charCode</tt>,
+and instead defines new values for <strong>keydown</strong> and
+<strong>keyup</strong> events.
+For a while it
+deprecated the <strong>keypress</strong> event and replaced it with
+the <strong>textInput</strong> event, but that was undone.
+Only a few browsers implemented the first version, and, so far, 
+no browsers have implemented the newest version.
+<p>
+Earlier versions of the specification defined attributes named
+<tt>event.keyIdentifier</tt> and <tt>event.keyLocation</tt>.
+The <tt>keyIdentifier</tt> was a string that in most cases looked like
+"<tt>U+0041</tt>" where the "<tt>0041</tt>" part is the unicode value
+of the character sent by the key when it is typed without modifiers,
+in this case the letter "A".
+For keys that didn't send unicode characters,
+or where the unicode value is not standardized,
+it was a string like "Enter", "Shift", "Left" or "F9".
+The <tt>keyLocation</tt> attribute gave values to distinguish among
+multiple keys that had the same identifier, like the left and right
+shift keys, or the keypad number keys.
+It was 0 for standard keys, 1 or 2 for left or right versions of a keys like
+<span class="key">Shift</span> which appear twice on the keyboard, and
+3 for keys on the numeric keypad.
+</p><p>
+WebKit implemented support for <tt>keyIdentifier</tt> and got it mostly right.
+Older versions conformed to an older version of the standard and returned
+two extra zeros (eg, "<tt>U+000041</tt>") but this was corrected in version
+525.
+Windows versions of Safari and Linux versions of Chrome return bad
+<tt>keyIdentifier</tt> values for all of the non-number symbol keys
+(WebKit Bug <a href="https://bugs.webkit.org/show_bug.cgi?id=19906">19906</a> reported in July 2008).
+The <tt>keyLocation</tt> attribute is always 0 or 3, so it does not
+distinguish between left and right modifier keys.
+</p><p>
+Konqueror returns <tt>keyIdentifier</tt> values like
+"Shift" and "Enter" correctly, but instead of returning the Unicode values,
+it returns the typed character itself,
+"<tt>a</tt>" or "<tt>A</tt>" instead of "<tt>U+0041</tt>".
+All <tt>keyLocation</tt> values are zero, except for modifiers key,
+which are always one, regardless of whether the left or right one was pressed.
+</p><p>
+We cannot, however expect any more browsers to implement that standard, since
+it has now changed. The <a href="http://www.w3.org/TR/DOM-Level-3-Events/#events-keyboard-event-order">DOM 3 standard</a> no longer mentions
+<tt>event.keyIdentifier</tt> or
+<tt>event.keyLocation</tt>.
+Instead we have <tt>event.key</tt>, <tt>event.char</tt>, 
+<tt>event.location</tt>..
+So far as I know, no browser has yet implemented this new version of the
+DOM 3 standard.
+</p><p>
+In this standard <tt>event.char</tt> is defined only when you type a printable
+character, or another character with a defined code (like tab or backspace).
+It's basically like <tt>event.charCode</tt> except that it is
+the character, not the character code and can be any unicode character
+not just an ASCII code.
+<tt>Event.key</tt> is the same as <tt>event.char</tt> for printable keys.
+For other keys, even ones like tab or backspace that have character encodings,
+it is a string like <tt>'Tab'</tt>,
+<tt>'Left'</tt> or <tt>'F9'</tt>.
+These values are supposed to be the same on <strong>keypress</strong>
+events as they are on <strong>keyup</strong> and <strong>keydown</strong>
+events, though <strong>keypress</strong> would not be fired for those
+cases where <tt>event.char</tt> is null.
+</p><p>
+Note that neither of these pretends to be a keycode identifying a particular
+physical key on the keyboard.
+If you press the <span class="key">/?</span> key on a US keyboard
+while shift is off, but press the shift key before releasing the
+<span class="key">/?</span> key,
+then then on <strong>keydown</strong>
+you'll get <tt>event.key=='/'</tt> and on
+<strong>keyup</strong>
+you'll get <tt>event.key=='?'</tt>.
+The only way your Javascript program will know that those two events
+go together is if it happens to know that those two characters
+are on the same key.
+There is an <tt>event.locale</tt> value that is supposed to give you some
+clue on what type of keyboard is being used, but figuring out what keys
+go with what on a particular keyboard is up to you.
+</p><p>
+Clearly this abandonment of the idea of keycodes is going to cause
+problems, but is still probably justified.
+In many (most?) operating systems, I don't think the browser can actually tell
+which key was pressed.
+In the browser source code I've seen, the keycodes are generated from the
+the character codes, not vice versa, by simply assuming that the character
+came from a US keyboard.
+So the keycode values never really worked for non-US keyboards.
+</p><p>
+So while the keycode concept was a handly one, it isn't really practically
+extensible in the real world.
+If you want a keycode in the DOM 3 universe, you'll have to go on using the
+legacy <tt>event.keyCode</tt> value, which, standards or no standards,
+isn't going away.
+The DOM 3 standard seems to recognize this,
+and reluctantly provides an
+<a href="http://www.w3.org/TR/DOM-Level-3-Events/#legacy-key-attributes">appendix</a>
+with some standards for <tt>event.keyCode</tt> and the like.
+It casts a rather weak vote for what I called "IE keycodes" above.
+
+</p><h3>4. Keyboard Focus</h3>
+
+A computer has only one keyboard, but there are typically many things on the
+screen that could receive keyboard income. The place where keyboard input
+actually goes is said to have "keyboard focus".
+<p>
+Most of the time, browsers manage this sensibly for you, with fairly
+good consistency between browsers, and you don't have to worry about it.
+But in some applications you'll find your key event handlers failing to
+fire because the HTML element or window they are attached to have lost
+keyboard focus. This happens a lot when you have frames or iframes.
+</p><p>
+I haven't done enough study of this to write up a detailed discussion of
+keyboard focus, but if you need to actively manage keyboard focus, your
+main tools are the <tt>focus()</tt> and <tt>blur()</tt> methods that are
+defined for all HTML elements. There are also <strong>focus</strong> and
+<strong>blur</strong> events that are fired on elements when they gain or
+lose focus, to which you can attach event handlers.
+</p><p>
+Another tool useful in some situations is the HTML "tabindex" property, that
+defines the order in which keyboard focus moves through HTML objects as the
+user tabs through them. The element with tabindex equal to zero will be the
+one that starts with keyboard focus when the page is loaded.
+
+</p><h3>5. Conclusions</h3>
+
+It's truely impressive what a hash has been made of a simple thing
+like recognizing a key pressed on the keyboard.
+You'd think computer technology would have advanced far enough by now to
+have this all worked out better.
+<p>
+The <strong>keypress</strong> events are generally the easiest to work
+with.  They are likely to cause substantially fewer problems with
+non-US keyboard layouts and it's not too hard to identify which key
+was pressed.
+You can get the character typed by doing:
+</p><pre>  if (event.which == null)
+     char= String.fromCharCode(event.keyCode);    // old IE
+  else if (event.which != 0 &amp;&amp; event.charCode != 0)
+     char= String.fromCharCode(event.which);	  // All others
+  else
+     // special key
+</pre>
+What to do with <strong>keypress</strong> events on special keys is a
+problem.  I recommend pretending they never happened.
+If you really want to process special key events,
+you should probably be working with
+<strong>keydown</strong> and <strong>keyup</strong> instead.
+<p>
+For <strong>keydown</strong> and <strong>keyup</strong> events, you
+can identify most common keys (letters, numbers, and a few others)
+by just looking at the <tt>event.keyCode</tt> and more or less
+pretending that it is an ASCII code.
+However, it isn't really,
+and the many Javascript manuals that say it can be converted to
+a character by doing "<tt>String.fromCharCode(event.keyCode)</tt>"
+are wrong.  On <strong>keydown</strong> and <strong>keyup</strong> events,
+the keycodes are <em>not</em> character codes,
+and this conversion will give wild results for many keys.
+There is no general portable way to convert keycodes to characters.
+You pretty much have to sense the browser type and base the key mapping on
+that.
+I don't have information on keycodes sent by international keyboards.
+</p><p>
+Because of bugs, many keys cannot be distinguished on <strong>keydown</strong>
+and <strong>keyup</strong> in Macintosh Gecko.
+</p><p>
+Hope for sanity exists, with the new key event handling specifications in DOM3,
+but so far only WebKit implements them.
+</p><p>
+</p><hr>
+Last Update:
+Sun Nov  4 05:49:05 EST 2012
+
+
+</body></html>

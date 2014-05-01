@@ -1,0 +1,82 @@
+Qusetion Type: BAsic
+
+Position 1:
+1.______ is the only function all C programs must contain.
+A. start()
+B. system() 
+C. main() 
+D. program()
+
+2._____ punctuation is used to signal the beginning and end of code blocks.
+A. { } 
+B. -> and <- 
+C. BEGIN and END 
+D. ( and )
+
+4._____ is not a correct variable type.
+A. float
+B. real
+C. int
+D. double
+
+5._____ is the correct operator to compare two variables.
+A. :=
+B. =
+C. equal
+D. ==
+
+Position 4:
+
+1. Length of the array: byte[]= { 12, 34, 9, 0, -62, 88 } is _____
+
+a.    1
+b.    5
+c.    6
+d.    12
+
+2.Which of the following statements correct about k used in the below statement?
+char **k;
+
+	A.char variable
+	B.pointer
+	C.pointer to a char pointer
+3.Can a pointer union be created? yes/no.
+
+4.Data written into a file using fwrite() can be read back using fscanf()
+	
+a.fscanf();
+b.fscanf();
+
+5.An assignment statement always has a single __________ on the left side of the assignment operator.
+[variable]
+
+ A(n) __________ is used to change the type of a value.
+[type cast]
+
+7.     Double quotes are used with constants of the __________ type.
+[String]
+
+1.     An ! in an expression means __________.
+[not]
+ 
+2.     A list of statements enclosed in curly brackets is called a(n) __________.
+[compound statement]
+ 
+3.     A case label is used with a(n) __________ statement.
+[switch]
+ 
+4.     A(n) __________ statement in a loop will cause the program to immediately exit the loop.
+[break]
+ 
+5.     A(n) __________ is used for signaling the end of the input.
+[sentinel value]
+
+3.     An array can be initialized by enclosing a list of values in __________.
+[curly brackets]
+5.     An array that uses more than one index is called a(n) __________ array.
+[multidimensional]
+ 
+
+
+
+ 
